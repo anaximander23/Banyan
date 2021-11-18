@@ -1,7 +1,5 @@
 ﻿using Banyan;
-using Microsoft.Maui;
-using Microsoft.Maui.Controls.Compatibility;
-using Microsoft.Maui.Controls.Hosting;
+using Lamar;
 using Microsoft.Maui.Hosting;
 
 namespace BanyanDemo
@@ -10,16 +8,23 @@ namespace BanyanDemo
     {
         public static MauiApp CreateMauiApp()
         {
-            var builder = MauiApp.CreateBuilder();
+            MauiAppBuilder builder = MauiApp.CreateBuilder();
             builder
-                .UseMauiApp<App>()
-                .UseBanyan()
+                .UseBanyanApp<App>(app =>
+                {
+                    app.SetMainPage<MainPage>();
+                    app.ConfigureServices(ConfigureServices);
+                })
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 });
 
             return builder.Build();
+        }
+
+        private static void ConfigureServices(ServiceRegistry services)
+        {
         }
     }
 }

@@ -1,17 +1,13 @@
-﻿using Microsoft.Maui;
-using Microsoft.Maui.Controls;
-using Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;
-using Application = Microsoft.Maui.Controls.Application;
+﻿using Banyan;
+using MediatR;
 
 namespace BanyanDemo
 {
-    public partial class App : Application
+    public partial class App : ApplicationCore
     {
-        public App()
+        public App(IMediator mediator)
+            : base(mediator)
         {
-            InitializeComponent();
-
-            MainPage = new MainPage();
         }
     }
 }
