@@ -1,4 +1,5 @@
 ﻿using Banyan;
+using BanyanDemo.Pages;
 using Lamar;
 using Microsoft.Maui.Hosting;
 
@@ -8,8 +9,7 @@ namespace BanyanDemo
     {
         public static MauiApp CreateMauiApp()
         {
-            MauiAppBuilder builder = MauiApp.CreateBuilder();
-            builder
+            MauiAppBuilder builder = MauiApp.CreateBuilder()
                 .UseBanyanApp<App>(app =>
                 {
                     app.SetMainPage<MainPage>();
@@ -25,6 +25,13 @@ namespace BanyanDemo
 
         private static void ConfigureServices(ServiceRegistry services)
         {
+            services.Scan(scan =>
+            {
+                scan.TheCallingAssembly();
+
+                scan.AddAllTypesOf<PageModel>();
+                scan.AddAllTypesOf(typeof(PageModel<>));
+            });
         }
     }
 }
