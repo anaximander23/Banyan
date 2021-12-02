@@ -13,7 +13,7 @@ namespace Banyan
         public static MauiAppBuilder UseBanyanApp<TApp>(this MauiAppBuilder builder, Action<BanyanAppConfiguration> configureApp)
             where TApp : ApplicationCore
         {
-            var appConfig = new BanyanAppConfiguration();
+            BanyanAppConfiguration appConfig = new BanyanAppConfiguration();
             configureApp?.Invoke(appConfig);
 
             builder.Host.UseLamar((context, services) =>
@@ -22,8 +22,11 @@ namespace Banyan
                 services.IncludeRegistry<PopupsRegistry>();
                 services.IncludeRegistry<MediatorRegistry>();
 
-                services.AddSingleton<ApplicationCore, TApp>();
-                services.AddSingleton<INavigationRoot>(s => s.GetRequiredService<ApplicationCore>());
+                services.Use<TApp>()
+                    .Singleton()
+                    .For<ApplicationCore>();
+
+                services.For<Func<INavigationRoot>>().Use(services => services.GetRequiredService<INavigationRoot>);
 
                 appConfig.ApplyConfigActions(services);
             });

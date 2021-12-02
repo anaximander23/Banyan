@@ -1,18 +1,23 @@
-﻿using Banyan;
+﻿using System.Threading.Tasks;
+using Banyan;
+using Banyan.Navigation;
 using Microsoft.Maui.Controls;
 
 namespace BanyanDemo.Pages
 {
     public class MainPageModel : PageModel<MainPage>
     {
-        public MainPageModel()
+        public MainPageModel(INavigationService navigationService)
         {
+            _navigationService = navigationService;
+
             _counter = 0;
             Label = "You haven't clicked yet!";
 
-            ButtonPressed = new Command(OnButtonPressed);
+            ButtonPressed = new Command(async () => await OnButtonPressed());
         }
 
+        private readonly INavigationService _navigationService;
         private string _label;
         private int _counter;
 
@@ -24,11 +29,9 @@ namespace BanyanDemo.Pages
 
         public Command ButtonPressed { get; private set; }
 
-        private void OnButtonPressed(object obj)
+        private async Task OnButtonPressed()
         {
-            _counter++;
-
-            Label = $"Current count: {_counter}";
+            await _navigationService.NavigateToPage<ItemListPage>();
         }
     }
 }

@@ -7,7 +7,7 @@ namespace Banyan.ServiceRegistries
     {
         public NavigationRegistry()
         {
-            For<INavigationRoot>().Use(c => c.GetInstance<ApplicationCore>());
+            For<INavigationRoot>().Use(services => services.GetInstance<ApplicationCore>());
             For<IPageFactory>().Use<LamarPageFactory>().Singleton();
             For<INavigationService>().Use<NavigationService>().Singleton();
 

@@ -1,26 +1,28 @@
-﻿using Banyan.Events;
+﻿using System;
+using System.Diagnostics;
+using Banyan.Events;
 using Banyan.Navigation;
 using MediatR;
+using Microsoft.Maui;
 using Microsoft.Maui.Controls;
 
 namespace Banyan
 {
+    [DebuggerDisplay("App {AppInstanceId}")]
     public class ApplicationCore : Application, INavigationRoot
     {
         public ApplicationCore(IMediator mediator)
         {
+            AppInstanceId = Guid.NewGuid().ToString();
+
             _mediator = mediator;
         }
 
-        internal IMediator _mediator;
+        internal readonly IMediator _mediator;
 
         INavigation INavigationRoot.Navigation { get; set; }
-
-        Page INavigationRoot.MainPage
-        {
-            get => MainPage;
-            set => MainPage = value;
-        }
+        internal Page InitialPage { get; set; }
+        private string AppInstanceId { get; }
 
         protected override void OnStart()
         {
@@ -35,6 +37,15 @@ namespace Banyan
         protected override void OnResume()
         {
             _mediator.Publish(new ApplicationResumed());
+        }
+
+        protected override Window CreateWindow(IActivationState activationState)
+        {
+            NavigationPage navigationPage = new NavigationPage(InitialPage);
+
+            (this as INavigationRoot).Navigation = navigationPage.Navigation;
+
+            return new Window(navigationPage);
         }
     }
 }

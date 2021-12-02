@@ -8,21 +8,21 @@ namespace Banyan.Navigation
 {
     internal class NavigationService : INavigationService
     {
-        public NavigationService(IPageFactory pageFactory, INavigationRoot navigationRoot)
+        public NavigationService(IPageFactory pageFactory, Func<INavigationRoot> navigationRootGetter)
         {
             _pageFactory = pageFactory;
-            _navigationRoot = navigationRoot;
+            _navigationRootGetter = navigationRootGetter;
         }
 
         private readonly IPageFactory _pageFactory;
-        private INavigationRoot _navigationRoot;
+        private readonly Func<INavigationRoot> _navigationRootGetter;
         private FlyoutNavigationBehaviour _masterDetailNavigationBehaviour;
+
         public Page CurrentPage => GetCurrentPage();
 
         private INavigationRoot NavigationRoot
         {
-            get => _navigationRoot ?? throw new InvalidOperationException("Cannot navigate; main page has not been set.");
-            set => _navigationRoot = value;
+            get => GetNavigationRoot() ?? throw new InvalidOperationException("Cannot navigate; main page has not been set.");
         }
 
         public async Task SetMainPage(Type pageType)
@@ -48,12 +48,7 @@ namespace Banyan.Navigation
         public async Task NavigateToPage<T>() where T : Page
         {
             Page page = await _pageFactory.CreatePage<T>();
-
-            if (_masterDetailNavigationBehaviour == FlyoutNavigationBehaviour.HideWhenNavigating
-                && NavigationRoot.MainPage is FlyoutPage flyoutPage)
-            {
-                flyoutPage.IsPresented = false;
-            }
+            ApplyFlyoutBehaviour();
 
             await NavigationRoot.Navigation.PushAsync(page, animated: true);
         }
@@ -62,22 +57,14 @@ namespace Banyan.Navigation
         {
             Page page = await _pageFactory.CreatePageWithData<T, TData>(data);
 
-            if (_masterDetailNavigationBehaviour == FlyoutNavigationBehaviour.HideWhenNavigating
-                && NavigationRoot.MainPage is FlyoutPage flyoutPage)
-            {
-                flyoutPage.IsPresented = false;
-            }
+            ApplyFlyoutBehaviour();
 
             await NavigationRoot.Navigation.PushAsync(page, animated: true);
         }
 
         public Task NavigateBack()
         {
-            if (_masterDetailNavigationBehaviour == FlyoutNavigationBehaviour.HideWhenNavigating
-                && NavigationRoot.MainPage is FlyoutPage flyoutPage)
-            {
-                flyoutPage.IsPresented = false;
-            }
+            ApplyFlyoutBehaviour();
 
             return NavigationRoot.Navigation.PopAsync(animated: true);
         }
@@ -116,22 +103,14 @@ namespace Banyan.Navigation
                 await navController.PopAsync(animated: true);
             }
 
-            if (_masterDetailNavigationBehaviour == FlyoutNavigationBehaviour.HideWhenNavigating
-                && NavigationRoot.MainPage is FlyoutPage flyoutPage)
-            {
-                flyoutPage.IsPresented = false;
-            }
+            ApplyFlyoutBehaviour();
 
             return true;
         }
 
         public Task NavigateToMainPage()
         {
-            if (_masterDetailNavigationBehaviour == FlyoutNavigationBehaviour.HideWhenNavigating
-                && NavigationRoot.MainPage is FlyoutPage flyoutPage)
-            {
-                flyoutPage.IsPresented = false;
-            }
+            ApplyFlyoutBehaviour();
 
             return NavigationRoot.Navigation.PopToRootAsync(animated: true);
         }
@@ -144,11 +123,7 @@ namespace Banyan.Navigation
             await NavigationRoot.Navigation.PushAsync(page);
             NavigationRoot.Navigation.RemovePage(rootPage);
 
-            if (_masterDetailNavigationBehaviour == FlyoutNavigationBehaviour.HideWhenNavigating
-                && NavigationRoot.MainPage is FlyoutPage flyoutPage)
-            {
-                flyoutPage.IsPresented = false;
-            }
+            ApplyFlyoutBehaviour();
         }
 
         public void ClearNavigationHistory()
@@ -177,45 +152,27 @@ namespace Banyan.Navigation
             return NavigationRoot.Navigation.PopModalAsync();
         }
 
+        private INavigationRoot GetNavigationRoot()
+        {
+            return _navigationRootGetter?.Invoke();
+        }
+
+        private void ApplyFlyoutBehaviour()
+        {
+            if (_masterDetailNavigationBehaviour == FlyoutNavigationBehaviour.HideWhenNavigating
+                            && NavigationRoot.MainPage is FlyoutPage flyoutPage)
+            {
+                flyoutPage.IsPresented = false;
+            }
+        }
+
         private Page GetCurrentPage()
         {
-            return _navigationRoot.Navigation.NavigationStack.FirstOrDefault() ?? _navigationRoot.MainPage;
+            return NavigationRoot.Navigation.NavigationStack.FirstOrDefault() ?? NavigationRoot.MainPage;
         }
 
         private void SetMainPage(Page mainPage)
         {
-            switch (mainPage)
-            {
-                case NavigationPage navigationPage:
-                    _navigationRoot.MainPage = navigationPage;
-                    _navigationRoot.Navigation = navigationPage.Navigation;
-
-                    return;
-
-                case FlyoutPage flyoutPage:
-                    if (flyoutPage.Detail is NavigationPage)
-                    {
-                        _navigationRoot.Navigation = flyoutPage.Detail.Navigation;
-                    }
-                    else
-                    {
-                        NavigationPage detailNavPage = flyoutPage.Detail is null ? new NavigationPage() : new NavigationPage(flyoutPage.Detail);
-                        flyoutPage.Detail = detailNavPage;
-                        _navigationRoot.Navigation = detailNavPage.Navigation;
-                    }
-
-                    _navigationRoot.MainPage = flyoutPage;
-
-                    return;
-
-                default:
-                    Page rootNavPage = new NavigationPage(mainPage);
-
-                    _navigationRoot.MainPage = mainPage;
-                    _navigationRoot.Navigation = rootNavPage.Navigation;
-
-                    return;
-            }
         }
     }
 }

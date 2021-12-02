@@ -30,7 +30,7 @@ namespace Banyan
 
         internal void ApplyConfigActions(ServiceRegistry services)
         {
-            foreach (var action in _configActions)
+            foreach (Action<ServiceRegistry> action in _configActions)
             {
                 action?.Invoke(services);
             }
@@ -38,7 +38,7 @@ namespace Banyan
 
         internal void ApplyAppActions(ApplicationCore app, IServiceProvider services)
         {
-            foreach (var action in _appActions)
+            foreach (Action<ApplicationCore, IServiceProvider> action in _appActions)
             {
                 action.Invoke(app, services);
             }
@@ -47,14 +47,14 @@ namespace Banyan
         private void SetMainPageFunc<TPage>(ApplicationCore app, IServiceProvider services)
             where TPage : Page
         {
-            var pageFactory = services.GetRequiredService<IPageFactory>();
-            var mainPageCreation = pageFactory.CreatePage<TPage>();
+            IPageFactory pageFactory = services.GetRequiredService<IPageFactory>();
+            System.Threading.Tasks.Task<Page> mainPageCreation = pageFactory.CreatePage<TPage>();
 
             mainPageCreation.Wait();
 
             if (mainPageCreation.IsCompletedSuccessfully)
             {
-                app.MainPage = mainPageCreation.Result;
+                app.InitialPage = mainPageCreation.Result;
             }
         }
     }
