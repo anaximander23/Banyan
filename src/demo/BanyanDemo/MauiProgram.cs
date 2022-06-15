@@ -1,7 +1,6 @@
 ﻿using Banyan;
 using BanyanDemo.Pages;
 using Lamar;
-using Microsoft.Maui.Hosting;
 
 namespace BanyanDemo
 {
