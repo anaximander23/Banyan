@@ -8,6 +8,7 @@ namespace BanyanDemo
         public App(IMediator mediator)
             : base(mediator)
         {
+            InitializeComponent();
         }
     }
 }

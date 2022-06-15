@@ -1,6 +1,7 @@
 ﻿using System;
 using Banyan.Navigation;
 using Banyan.ServiceRegistries;
+using Lamar;
 using Lamar.Microsoft.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.Controls.Hosting;
@@ -16,7 +17,7 @@ namespace Banyan
             BanyanAppConfiguration appConfig = new BanyanAppConfiguration();
             configureApp?.Invoke(appConfig);
 
-            builder.Host.UseLamar((context, services) =>
+            builder.ConfigureContainer<ServiceRegistry>(new LamarServiceProviderFactory(), services =>
             {
                 services.IncludeRegistry<NavigationRegistry>();
                 services.IncludeRegistry<PopupsRegistry>();
